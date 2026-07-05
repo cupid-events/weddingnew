@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>פנקס אנשי קשר</title>
+<title>ייבוא אנשי קשר מהאייפון</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Frank+Ruhl+Libre:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -12,7 +12,7 @@
     --paper: #f7f9fb;
     --card: #ffffff;
     --line: #dde5ec;
-    --accent: #0f766e;      /* ירוק-כחלחל עמוק */
+    --accent: #0f766e;
     --accent-soft: #e6f2f1;
     --danger: #b4453c;
   }
@@ -24,12 +24,12 @@
     background: var(--paper);
     color: var(--ink);
     min-height: 100vh;
-    padding: 48px 20px 80px;
+    padding: 40px 16px 80px;
   }
 
   .wrap { max-width: 640px; margin: 0 auto; }
 
-  header { margin-bottom: 36px; }
+  header { margin-bottom: 28px; }
 
   .eyebrow {
     font-size: 13px;
@@ -41,93 +41,75 @@
 
   h1 {
     font-family: 'Frank Ruhl Libre', 'Heebo', serif;
-    font-size: clamp(32px, 6vw, 44px);
+    font-size: clamp(30px, 6vw, 42px);
     font-weight: 900;
     line-height: 1.1;
   }
 
-  .subtitle {
-    margin-top: 10px;
-    color: var(--ink-soft);
-    font-size: 15px;
+  .subtitle { margin-top: 10px; color: var(--ink-soft); font-size: 15px; }
+
+  /* ---- אזור העלאה ---- */
+  .drop-zone {
+    background: var(--card);
+    border: 2px dashed var(--line);
+    border-radius: 16px;
+    padding: 36px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 16px;
   }
 
-  /* ---- טופס הוספה ---- */
-  .add-card {
+  .drop-zone:hover, .drop-zone.drag {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .drop-zone .icon { font-size: 40px; margin-bottom: 10px; }
+
+  .drop-zone .main-text { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+
+  .drop-zone .sub-text { font-size: 14px; color: var(--ink-soft); }
+
+  #fileInput { display: none; }
+
+  /* ---- הוראות ---- */
+  details.howto {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 20px;
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 12px;
-    box-shadow: 0 1px 3px rgba(28,39,51,0.05);
-    margin-bottom: 40px;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    overflow: hidden;
   }
 
-  .field { display: flex; flex-direction: column; gap: 6px; }
-
-  label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink-soft);
-  }
-
-  input {
-    font-family: inherit;
-    font-size: 16px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--paper);
-    color: var(--ink);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    min-width: 0;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-
-  input.invalid { border-color: var(--danger); }
-
-  #phone { direction: ltr; text-align: right; }
-
-  .btn-add {
-    align-self: end;
-    font-family: inherit;
-    font-size: 15px;
+  details.howto summary {
+    padding: 14px 18px;
+    font-size: 14px;
     font-weight: 700;
-    padding: 10px 22px;
-    border: none;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #fff;
+    color: var(--accent);
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    white-space: nowrap;
+    list-style: none;
+  }
+  details.howto summary::-webkit-details-marker { display: none; }
+  details.howto summary::before { content: '❓ '; }
+
+  details.howto .steps {
+    padding: 0 18px 18px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.8;
   }
 
-  .btn-add:hover { background: #0d5f58; }
-  .btn-add:active { transform: scale(0.97); }
-  .btn-add:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+  details.howto .steps strong { color: var(--ink); }
 
-  .error-msg {
-    grid-column: 1 / -1;
-    color: var(--danger);
-    font-size: 13px;
-    display: none;
-  }
-  .error-msg.show { display: block; }
-
-  /* ---- הטבלה ---- */
+  /* ---- טבלה ---- */
   .table-head-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     margin-bottom: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
   h2 {
@@ -136,15 +118,30 @@
     font-weight: 700;
   }
 
+  .head-actions { display: flex; align-items: center; gap: 10px; }
+
   .count {
     font-size: 13px;
-    color: var(--ink-soft);
     background: var(--accent-soft);
     color: var(--accent);
     font-weight: 700;
     padding: 3px 12px;
     border-radius: 99px;
   }
+
+  .btn-clear {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink-soft);
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn-clear:hover { color: var(--danger); border-color: var(--danger); }
 
   table {
     width: 100%;
@@ -163,18 +160,18 @@
     letter-spacing: 0.05em;
     color: var(--ink-soft);
     background: var(--paper);
-    padding: 12px 18px;
+    padding: 12px 16px;
     border-bottom: 2px solid var(--line);
   }
 
   tbody td {
-    padding: 14px 18px;
+    padding: 13px 16px;
     border-bottom: 1px solid var(--line);
     font-size: 16px;
+    word-break: break-word;
   }
 
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr { transition: background 0.12s; }
   tbody tr:hover { background: #fbfdfe; }
 
   td.name { font-weight: 500; }
@@ -185,40 +182,48 @@
     font-variant-numeric: tabular-nums;
     color: var(--ink-soft);
     letter-spacing: 0.03em;
+    white-space: pre-line;
   }
 
-  td.actions { width: 44px; padding: 0 10px; text-align: center; }
+  td.actions { width: 40px; padding: 0 6px; text-align: center; }
 
   .btn-del {
     border: none;
     background: transparent;
     color: #b9c4cf;
-    font-size: 18px;
-    line-height: 1;
+    font-size: 17px;
     cursor: pointer;
     padding: 8px;
     border-radius: 6px;
     transition: color 0.15s, background 0.15s;
   }
   .btn-del:hover { color: var(--danger); background: #faf0ef; }
-  .btn-del:focus-visible { outline: 2px solid var(--danger); }
 
-  /* ---- מצב ריק ---- */
   .empty {
     text-align: center;
-    padding: 56px 20px;
+    padding: 48px 20px;
     color: var(--ink-soft);
     background: var(--card);
     border: 1px dashed var(--line);
     border-radius: 14px;
+    font-size: 15px;
   }
-  .empty .big { font-size: 34px; margin-bottom: 10px; }
-  .empty p { font-size: 15px; }
 
-  @media (max-width: 560px) {
-    .add-card { grid-template-columns: 1fr; }
-    .btn-add { align-self: stretch; }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 50%;
+    transform: translateX(50%);
+    background: var(--ink);
+    color: #fff;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
   }
+  .toast.show { opacity: 1; }
 
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
@@ -230,83 +235,187 @@
 
   <header>
     <div class="eyebrow">פנקס אישי</div>
-    <h1>אנשי הקשר שלי</h1>
-    <p class="subtitle">הוסיפו שם ומספר טלפון, והרשימה תתעדכן בטבלה למטה.</p>
+    <h1>ייבוא אנשי קשר</h1>
+    <p class="subtitle">שתפו אנשי קשר מהאייפון כקובץ, העלו אותו כאן — והטבלה תיבנה לבד.</p>
   </header>
 
-  <div class="add-card">
-    <div class="field">
-      <label for="name">שם</label>
-      <input type="text" id="name" placeholder="למשל: דנה לוי" autocomplete="off">
-    </div>
-    <div class="field">
-      <label for="phone">טלפון</label>
-      <input type="tel" id="phone" placeholder="050-1234567" autocomplete="off">
-    </div>
-    <button class="btn-add" id="addBtn">הוספה</button>
-    <div class="error-msg" id="errorMsg"></div>
+  <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="העלאת קובץ אנשי קשר">
+    <div class="icon">📇</div>
+    <div class="main-text">לחצו כאן לבחירת קובץ אנשי קשר</div>
+    <div class="sub-text">קובצי vCard (‏.vcf) — אפשר לבחור כמה קבצים יחד, או לגרור לכאן</div>
   </div>
+  <input type="file" id="fileInput" accept=".vcf,text/vcard,text/x-vcard" multiple>
+
+  <details class="howto">
+    <summary>איך מוציאים איש קשר מהאייפון?</summary>
+    <div class="steps">
+      <strong>איש קשר בודד:</strong> פתחו את אפליקציית "אנשי קשר" → בחרו איש קשר → גללו למטה → <strong>"שתף איש קשר"</strong> → שמרו ל"קבצים" (או שלחו לעצמכם) → העלו את קובץ ה‑vcf כאן.<br><br>
+      <strong>כל אנשי הקשר בבת אחת:</strong> היכנסו מהמחשב ל‑iCloud.com → אנשי קשר → בחרו הכול → גלגל השיניים → <strong>"Export vCard"</strong> → יתקבל קובץ ‎.vcf אחד עם כולם, והעלו אותו כאן.
+    </div>
+  </details>
 
   <div class="table-head-row">
     <h2>הטבלה</h2>
-    <span class="count" id="count">0 אנשי קשר</span>
+    <div class="head-actions">
+      <span class="count" id="count">0 אנשי קשר</span>
+      <button class="btn-clear" id="clearBtn">ניקוי הרשימה</button>
+    </div>
   </div>
 
   <div id="tableArea"></div>
+
+  <div class="toast" id="toast"></div>
 
 </div>
 
 <script>
   let contacts = [];
 
-  const nameInput = document.getElementById('name');
-  const phoneInput = document.getElementById('phone');
-  const addBtn = document.getElementById('addBtn');
-  const errorMsg = document.getElementById('errorMsg');
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
   const tableArea = document.getElementById('tableArea');
   const countEl = document.getElementById('count');
+  const clearBtn = document.getElementById('clearBtn');
+  const toast = document.getElementById('toast');
+  let toastTimer;
 
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorMsg.classList.add('show');
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
   }
 
-  function clearError() {
-    errorMsg.classList.remove('show');
-    nameInput.classList.remove('invalid');
-    phoneInput.classList.remove('invalid');
+  /* ---------- פענוח vCard ---------- */
+
+  // פענוח Quoted-Printable (נפוץ בקבצים ישנים עם עברית)
+  function decodeQP(str) {
+    str = str.replace(/=\r?\n/g, '');
+    const bytes = [];
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === '=' && i + 2 < str.length + 1) {
+        const hex = str.substr(i + 1, 2);
+        if (/^[0-9A-Fa-f]{2}$/.test(hex)) {
+          bytes.push(parseInt(hex, 16));
+          i += 2;
+          continue;
+        }
+      }
+      bytes.push(str.charCodeAt(i));
+    }
+    try {
+      return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+    } catch (e) {
+      return str;
+    }
   }
 
-  function addContact() {
-    clearError();
-    const name = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
+  // איחוי שורות מקופלות (שורה שמתחילה ברווח ממשיכה את הקודמת)
+  function unfoldLines(text) {
+    return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+               .replace(/\n[ \t]/g, '');
+  }
 
-    if (!name) {
-      nameInput.classList.add('invalid');
-      showError('צריך למלא שם.');
-      nameInput.focus();
-      return;
-    }
-    if (!phone) {
-      phoneInput.classList.add('invalid');
-      showError('צריך למלא מספר טלפון.');
-      phoneInput.focus();
-      return;
-    }
-    if (!/^[\d\s\-+()]{5,20}$/.test(phone)) {
-      phoneInput.classList.add('invalid');
-      showError('מספר הטלפון יכול להכיל רק ספרות, רווחים, מקפים וסוגריים.');
-      phoneInput.focus();
-      return;
-    }
+  function parseVCF(text) {
+    const results = [];
+    const cards = unfoldLines(text).split(/BEGIN:VCARD/i).slice(1);
 
-    contacts.push({ id: Date.now(), name, phone });
-    nameInput.value = '';
-    phoneInput.value = '';
-    nameInput.focus();
+    for (const card of cards) {
+      let name = '';
+      let nField = '';
+      const phones = [];
+
+      for (const rawLine of card.split('\n')) {
+        const line = rawLine.trim();
+        if (!line || /^END:VCARD/i.test(line)) continue;
+
+        const colonIdx = line.indexOf(':');
+        if (colonIdx === -1) continue;
+
+        const key = line.slice(0, colonIdx);
+        let value = line.slice(colonIdx + 1);
+        const keyUpper = key.toUpperCase();
+
+        if (/QUOTED-PRINTABLE/i.test(key)) value = decodeQP(value);
+
+        if (keyUpper === 'FN' || keyUpper.startsWith('FN;')) {
+          name = value.trim();
+        } else if (keyUpper === 'N' || keyUpper.startsWith('N;')) {
+          // N: משפחה;פרטי;אמצעי;תואר
+          const parts = value.split(';');
+          nField = [parts[1], parts[2], parts[0]].filter(Boolean).join(' ').trim();
+        } else if (keyUpper.startsWith('TEL') || /\.TEL/i.test(keyUpper)) {
+          const phone = value.trim();
+          if (phone && !phones.includes(phone)) phones.push(phone);
+        }
+      }
+
+      const finalName = name || nField;
+      if (finalName || phones.length) {
+        results.push({
+          id: Date.now() + Math.random(),
+          name: finalName || '(ללא שם)',
+          phone: phones.length ? phones.join('\n') : '(אין מספר)'
+        });
+      }
+    }
+    return results;
+  }
+
+  /* ---------- טיפול בקבצים ---------- */
+
+  function handleFiles(fileList) {
+    const files = Array.from(fileList);
+    if (!files.length) return;
+
+    let added = 0, done = 0;
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parsed = parseVCF(reader.result);
+        // מניעת כפילויות לפי שם+טלפון
+        parsed.forEach(p => {
+          const dup = contacts.some(c => c.name === p.name && c.phone === p.phone);
+          if (!dup) { contacts.push(p); added++; }
+        });
+        done++;
+        if (done === files.length) {
+          contacts.sort((a, b) => a.name.localeCompare(b.name, 'he'));
+          render();
+          showToast(added
+            ? 'נוספו ' + added + ' אנשי קשר ✓'
+            : 'לא נמצאו אנשי קשר חדשים בקובץ');
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    fileInput.value = '';
+  }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+  ['dragover', 'dragenter'].forEach(ev =>
+    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drag'); })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drag'); })
+  );
+  dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+  clearBtn.addEventListener('click', () => {
+    if (!contacts.length) return;
+    contacts = [];
     render();
-  }
+    showToast('הרשימה נוקתה');
+  });
+
+  /* ---------- רינדור ---------- */
 
   function removeContact(id) {
     contacts = contacts.filter(c => c.id !== id);
@@ -318,15 +427,13 @@
       ? 'איש קשר אחד'
       : contacts.length + ' אנשי קשר';
 
-    if (contacts.length === 0) {
-      tableArea.innerHTML =
-        '<div class="empty"><div class="big">📇</div><p>הרשימה ריקה עדיין. הוסיפו את איש הקשר הראשון למעלה.</p></div>';
+    if (!contacts.length) {
+      tableArea.innerHTML = '<div class="empty">הטבלה ריקה. העלו קובץ אנשי קשר (‏.vcf) למעלה כדי להתחיל.</div>';
       return;
     }
 
     const table = document.createElement('table');
-    table.innerHTML =
-      '<thead><tr><th>שם</th><th>טלפון</th><th></th></tr></thead>';
+    table.innerHTML = '<thead><tr><th>שם</th><th>טלפון</th><th></th></tr></thead>';
     const tbody = document.createElement('tbody');
 
     contacts.forEach(c => {
@@ -359,11 +466,6 @@
     tableArea.innerHTML = '';
     tableArea.appendChild(table);
   }
-
-  addBtn.addEventListener('click', addContact);
-  [nameInput, phoneInput].forEach(el =>
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') addContact(); })
-  );
 
   render();
 </script>
