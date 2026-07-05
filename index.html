@@ -113,9 +113,14 @@
 <body>
 <main class="phone-card">
 
+  <!-- ===== מסך טעינה ראשוני ===== -->
+  <section class="screen show" id="initLoading">
+    <div class="spinner" id="initSpinner"></div>
+    <p class="loading-text">טוען הזמנה...</p>
+  </section>
+
   <!-- ===== מסך הטופס ===== -->
-  <section id="formScreen">
-    <img id="inviteImg" class="invite-img" src="" alt="הזמנה לאירוע" hidden>
+  <section id="formScreen" style="display:none">
     <div class="content">
       <p class="greet">שלום,<br>הוזמנת לאירוע של</p>
       <div class="couple" id="coupleName">…</div>
@@ -146,6 +151,7 @@
       <button class="submit" id="submitBtn">שלח</button>
       <p class="err" id="errMsg"></p>
     </div>
+    <img id="inviteImg" class="invite-img" src="" alt="הזמנה לאירוע" hidden>
   </section>
 
   <!-- ===== מסך טעינה ===== -->
@@ -181,28 +187,45 @@ const rawId   = params.get("p") || params.get("phone") || "";
 const guestKey = rawId.replace(/\D/g,"").slice(-8);   // 8 ספרות אחרונות
 
 /* ---------- בניית ספינר ---------- */
-const spinner = document.getElementById("spinner");
-for(let i=0;i<10;i++){
-  const dot=document.createElement("span");
-  dot.style.transform=`rotate(${i*36}deg) translateY(-1px)`;
-  dot.style.animationDelay=(i*0.1)+"s";
-  spinner.appendChild(dot);
+function buildSpinner(el){
+  for(let i=0;i<10;i++){
+    const dot=document.createElement("span");
+    dot.style.transform=`rotate(${i*36}deg) translateY(-1px)`;
+    dot.style.animationDelay=(i*0.1)+"s";
+    el.appendChild(dot);
+  }
 }
+buildSpinner(document.getElementById("spinner"));
+buildSpinner(document.getElementById("initSpinner"));
+
+/* ---------- חשיפת הטופס לאחר טעינת פרטי האירוע והתמונה ---------- */
+let formShown=false;
+function showForm(){
+  if(formShown) return;
+  formShown=true;
+  document.getElementById("initLoading").classList.remove("show");
+  document.getElementById("formScreen").style.display="";
+}
+setTimeout(showForm, 8000); // רשת איטית / שגיאה – לא משאירים את האורח תקוע
 
 /* ---------- טעינת פרטי האירוע (שם זוג, תאריך, תמונה) ---------- */
 fetch(`${SCRIPT_URL}?action=eventInfo&event=${encodeURIComponent(eventId)}`)
   .then(r=>r.json())
   .then(d=>{
-    if(!d.ok) return;
+    if(!d.ok){ document.getElementById("coupleName").textContent="האירוע"; showForm(); return; }
     document.getElementById("coupleName").textContent = d.event.name || "";
     document.getElementById("eventDate").textContent  = d.event.date || "";
+    document.title = "אישור הגעה – " + (d.event.name||"");
     if(d.event.image){
       const img=document.getElementById("inviteImg");
-      img.src=d.event.image; img.hidden=false;
+      img.onload = ()=>{ img.hidden=false; showForm(); };
+      img.onerror = showForm;               // תמונה שבורה – מציגים את הטופס בלעדיה
+      img.src=d.event.image;
+    }else{
+      showForm();
     }
-    document.title = "אישור הגעה – " + (d.event.name||"");
   })
-  .catch(()=>{ document.getElementById("coupleName").textContent="האירוע"; });
+  .catch(()=>{ document.getElementById("coupleName").textContent="האירוע"; showForm(); });
 
 /* ---------- בחירת סטטוס ---------- */
 let status=null, count=1;
