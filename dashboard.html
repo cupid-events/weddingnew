@@ -15,7 +15,7 @@
     --gray:#7c7c8a;  --gray-bg:#f1f1f5;
     --shadow:0 6px 22px rgba(60,40,140,.08);
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
   button{font-family:inherit;cursor:pointer}
   input,select{font-family:inherit}
@@ -52,7 +52,8 @@
   .topbar h2{font-size:20px;display:flex;gap:8px;align-items:center}
   .topbar .spacer{flex:1}
   .select-wrap select,.topbar input[type=date]{padding:9px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:14px;color:var(--ink)}
-  .btn{padding:9px 16px;border:none;border-radius:10px;font-size:14px;font-weight:600}
+  .btn{padding:10px 16px;border:none;border-radius:10px;font-size:14px;font-weight:600;min-height:42px;transition:transform .1s}
+  .btn:active{transform:scale(.97)}
   .btn.primary{background:var(--primary);color:#fff}
   .btn.primary:hover{background:var(--primary-dark)}
   .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
@@ -105,6 +106,19 @@
   .empty{padding:34px;text-align:center;color:var(--muted);font-size:14px}
   .table-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:var(--muted)}
 
+  /* כרטיסי אורחים – תצוגת מובייל */
+  .guest-cards{display:none;flex-direction:column;gap:10px}
+  .gcard{border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;background:#fff}
+  .gcard .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .gcard .name{font-weight:700;font-size:15.5px}
+  .gcard .meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:7px}
+  .gcard .meta b{color:var(--ink);font-weight:600}
+  .gcard .notes{font-size:13px;margin-top:8px;background:var(--gray-bg);border-radius:8px;padding:7px 10px;color:#4b4b58}
+  .gcard .wa-full{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;
+    padding:10px 0;border-radius:10px;background:var(--green-bg);color:var(--green);font-weight:700;
+    font-size:14px;text-decoration:none}
+  .gcard .wa-full svg{width:17px;height:17px;fill:var(--green)}
+
   /* ===== מודאל ===== */
   .modal-bg{position:fixed;inset:0;background:rgba(30,20,70,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
   .modal-bg.show{display:flex}
@@ -118,7 +132,46 @@
 
   #toast{position:fixed;bottom:22px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:11px 22px;border-radius:999px;font-size:14px;display:none;z-index:60}
 
-  @media (max-width:980px){ .mid{grid-template-columns:1fr} #app{grid-template-columns:1fr} aside{flex-direction:row;align-items:center;overflow-x:auto;gap:6px;padding:12px} .side-footer,.brand small{display:none} .nav-item{width:auto;white-space:nowrap} .brand{padding:0 10px 0 0} }
+  @media (max-width:1120px){
+    .mid{grid-template-columns:1fr 1fr}
+    .mid .panel:last-child{grid-column:1/-1}
+  }
+  @media (max-width:980px){
+    #app{grid-template-columns:1fr}
+    aside{flex-direction:row;align-items:center;overflow-x:auto;gap:4px;padding:10px 14px;
+      position:sticky;top:0;z-index:40;box-shadow:0 4px 14px rgba(20,10,60,.25)}
+    aside::-webkit-scrollbar{display:none}
+    .side-footer{display:none}
+    .brand{padding:0 0 0 12px}
+    .brand small{display:none}
+    .nav-item{width:auto;white-space:nowrap;padding:9px 13px;font-size:13.5px}
+  }
+  @media (max-width:720px){
+    main{padding:14px 14px 30px}
+    .topbar{gap:8px}
+    .topbar h2{width:100%;font-size:18px}
+    .topbar .spacer{display:none}
+    .select-wrap{flex:1 1 100%}
+    .select-wrap select{width:100%;min-height:44px}
+    .topbar .btn{flex:1 1 calc(50% - 4px);font-size:13px;padding:10px 8px}
+    .stats{grid-template-columns:1fr 1fr;gap:10px}
+    .stat{padding:13px 14px;border-radius:14px}
+    .stat .num{font-size:24px}
+    .stat .head{font-size:12.5px}
+    .mid{grid-template-columns:1fr;gap:10px}
+    .panel{padding:15px}
+    .table-panel{padding:14px}
+    .table-tools{gap:8px}
+    .search{min-width:0;flex:1 1 100%}
+    .search input,#statusFilter{min-height:44px}
+    #statusFilter{flex:1;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+    .table-scroll{display:none}
+    .guest-cards{display:flex}
+    .modal-bg{align-items:flex-end;padding:0}
+    .modal{max-width:none;border-radius:18px 18px 0 0;max-height:86vh;padding:22px 20px calc(20px + env(safe-area-inset-bottom))}
+    .modal input{min-height:46px}
+    #toast{bottom:14px;width:calc(100% - 40px);text-align:center}
+  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -205,12 +258,13 @@
           <option value="לא ענו">לא ענו</option>
         </select>
       </div>
-      <div style="overflow-x:auto">
+      <div class="table-scroll" style="overflow-x:auto">
         <table>
           <thead><tr><th>שם מלא</th><th>טלפון</th><th>סטטוס</th><th>כמות</th><th>הערות</th><th>פעולות</th></tr></thead>
           <tbody id="guestRows"></tbody>
         </table>
       </div>
+      <div class="guest-cards" id="guestCards"></div>
       <div class="empty" id="emptyState" style="display:none">לא נמצאו אורחים תואמים</div>
       <div class="table-footer"><span id="tableCount"></span></div>
     </div>
@@ -274,11 +328,12 @@
 /* ================================================================
    הגדרות — עדכן/י לאחר פריסת ה-Apps Script
 ================================================================ */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEkRzgJwXEIDAYkKqgI9d66-S9nQn9ajzzJiNmIpUImdlV689u5OWSDyDsQVdUzNXiEw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUc0m1sqmKx9lKsLQD_26alO_WUTxAW4DgYRmmFHM5dUWyRLa-XK2c26qYc9clPHc45g/exec";
 const GUEST_PAGE_URL = "https://your-site.example/index.html";            // ← כתובת דף האורח
 
 /* ---------- מצב ---------- */
 let auth = null;                 // {user, pass}
+let role = "viewer";             // "admin" = מנהל ראשי
 let events = [];                 // [{id,name,date,image}]
 let currentEvent = null;
 let guests = [];                 // [{name,phone,status,count,notes,updated}]
@@ -314,17 +369,19 @@ $("loginForm").addEventListener("submit",async e=>{
     if(!d.ok) throw 0;
     sessionStorage.setItem("rsvpAuth",JSON.stringify(auth));
     $("adminName").textContent=d.name||auth.user;
+    role=d.role||"viewer";
     enterApp();
   }catch{ $("loginErr").style.display="block"; }
 });
 const saved=sessionStorage.getItem("rsvpAuth");
-if(saved){ auth=JSON.parse(saved); api("login").then(d=>{ if(d.ok){$("adminName").textContent=d.name||auth.user;enterApp();} }); }
+if(saved){ auth=JSON.parse(saved); api("login").then(d=>{ if(d.ok){$("adminName").textContent=d.name||auth.user;role=d.role||"viewer";enterApp();} }); }
 
 $("logoutBtn").onclick=()=>{ sessionStorage.removeItem("rsvpAuth"); location.reload(); };
 
 async function enterApp(){
   $("loginScreen").style.display="none";
   $("app").classList.add("show");
+  applyRole();
   const d=await api("events");
   events=d.events||[];
   const sel=$("eventSelect");
@@ -334,9 +391,16 @@ async function enterApp(){
   loadData();
 }
 
+/* ---------- הרשאות תצוגה: פעולות ניהול למנהל ראשי בלבד ---------- */
+function applyRole(){
+  const adminOnly=["navAddEvent","copyLinkBtn","addGuestBtn","exportBtn","bulkReminderBtn"];
+  adminOnly.forEach(id=>{ $(id).style.display = role==="admin" ? "" : "none"; });
+}
+
 /* ---------- טעינת נתונים ---------- */
 async function loadData(){
   if(!currentEvent) return;
+  $("tableCount").textContent="טוען נתונים...";
   const d=await api("dashboard",{event:currentEvent.id});
   guests=(d.guests||[]).map(g=>({...g,status:g.status||"לא ענו"}));
   render();
@@ -436,10 +500,23 @@ function renderTable(){
       <td><span class="tag ${m.bg}">${m.label}</span></td>
       <td>${g.status==="מגיעים"?(g.count||""):"–"}</td>
       <td>${esc(g.notes)||"–"}</td>
-      <td><a class="wa-btn" href="${waLink(g)}" target="_blank" rel="noopener" title="שליחת וואטסאפ">
+      <td>${role!=="admin"?"–":`<a class="wa-btn" href="${waLink(g)}" target="_blank" rel="noopener" title="שליחת וואטסאפ">
         <svg viewBox="0 0 32 32"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.6.8 5 2.3 7L4 29l7.2-2.2c1.9 1 4 1.6 6.3 1.6h.5c6.6 0 12-5.4 12-12S22.6 3 16 3zm6.6 17c-.3.8-1.6 1.5-2.2 1.6-.6.1-1.3.1-2.1-.1-.5-.2-1.1-.4-1.9-.7-3.4-1.5-5.6-4.9-5.8-5.1-.2-.2-1.4-1.8-1.4-3.5s.9-2.5 1.2-2.8c.3-.3.7-.4.9-.4h.7c.2 0 .5-.1.8.6.3.7 1 2.4 1.1 2.6.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.6.7c-.2.2-.4.4-.2.8.2.4 1 1.6 2.1 2.6 1.4 1.3 2.6 1.7 3 1.9.4.2.6.1.8-.1.2-.2 1-1.1 1.2-1.5.2-.4.5-.3.8-.2.3.1 2.1 1 2.4 1.2.4.2.6.3.7.4.1.2.1.9-.1 1.4z"/></svg>
-      </a></td>
+      </a>`}</td>
     </tr>`;
+  }).join("");
+  const waSvg=`<svg viewBox="0 0 32 32"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.6.8 5 2.3 7L4 29l7.2-2.2c1.9 1 4 1.6 6.3 1.6h.5c6.6 0 12-5.4 12-12S22.6 3 16 3zm6.6 17c-.3.8-1.6 1.5-2.2 1.6-.6.1-1.3.1-2.1-.1-.5-.2-1.1-.4-1.9-.7-3.4-1.5-5.6-4.9-5.8-5.1-.2-.2-1.4-1.8-1.4-3.5s.9-2.5 1.2-2.8c.3-.3.7-.4.9-.4h.7c.2 0 .5-.1.8.6.3.7 1 2.4 1.1 2.6.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.6.7c-.2.2-.4.4-.2.8.2.4 1 1.6 2.1 2.6 1.4 1.3 2.6 1.7 3 1.9.4.2.6.1.8-.1.2-.2 1-1.1 1.2-1.5.2-.4.5-.3.8-.2.3.1 2.1 1 2.4 1.2.4.2.6.3.7.4.1.2.1.9-.1 1.4z"/></svg>`;
+  $("guestCards").innerHTML=rows.map(g=>{
+    const m=STATUS_META[g.status]||STATUS_META["לא ענו"];
+    return `<div class="gcard">
+      <div class="top"><span class="name">${esc(g.name)}</span><span class="tag ${m.bg}">${m.label}</span></div>
+      <div class="meta">
+        <span dir="ltr">${esc(g.phone)}</span>
+        ${g.status==="מגיעים"?`<span><b>${g.count||1}</b> מגיעים</span>`:""}
+      </div>
+      ${g.notes?`<div class="notes">${esc(g.notes)}</div>`:""}
+      ${role==="admin"&&g.phone?`<a class="wa-full" href="${waLink(g)}" target="_blank" rel="noopener">${waSvg} שליחת וואטסאפ</a>`:""}
+    </div>`;
   }).join("");
   $("emptyState").style.display=rows.length?"none":"block";
   $("tableCount").textContent=`מציג ${rows.length} מתוך ${guests.length} אורחים`;
