@@ -367,21 +367,39 @@ $("loginForm").addEventListener("submit",async e=>{
   try{
     const d=await api("login");
     if(!d.ok) throw 0;
-    sessionStorage.setItem("rsvpAuth",JSON.stringify(auth));
     $("adminName").textContent=d.name||auth.user;
     role=d.role||"viewer";
     enterApp();
   }catch{ $("loginErr").style.display="block"; }
 });
-const saved=sessionStorage.getItem("rsvpAuth");
-if(saved){ auth=JSON.parse(saved); api("login").then(d=>{ if(d.ok){$("adminName").textContent=d.name||auth.user;role=d.role||"viewer";enterApp();} }); }
+/* ---------- ניתוק ---------- */
+function logout(msg){
+  auth=null; role="viewer"; guests=[]; clearTimeout(idleTimer);
+  $("app").classList.remove("show");
+  $("loginScreen").style.display="flex";
+  $("loginPass").value="";
+  const e=$("loginErr");
+  if(msg){ e.textContent=msg; e.style.display="block"; } else { e.style.display="none"; }
+}
+$("logoutBtn").onclick=()=>logout();
 
-$("logoutBtn").onclick=()=>{ sessionStorage.removeItem("rsvpAuth"); location.reload(); };
+/* ---------- ניתוק אוטומטי לאחר 2 דקות ללא פעילות ---------- */
+const IDLE_LIMIT = 2*60*1000;
+let idleTimer=null;
+function resetIdle(){
+  if(!auth) return;
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(()=>logout("נותקת עקב חוסר פעילות – יש להתחבר מחדש"),IDLE_LIMIT);
+}
+["click","keydown","touchstart","scroll","mousemove"].forEach(ev=>
+  document.addEventListener(ev,resetIdle,{passive:true}));
 
 async function enterApp(){
+  $("loginErr").style.display="none";
   $("loginScreen").style.display="none";
   $("app").classList.add("show");
   applyRole();
+  resetIdle();
   const d=await api("events");
   events=d.events||[];
   const sel=$("eventSelect");
