@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אישור הגעה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5fc; --card:#ffffff; --ink:#241f3d; --muted:#8b8b98;
+    --primary:#6c4ce0; --primary-dark:#5538c9;
+    --green:#1f9d55; --green-bg:#e6f6ec; --green-border:#bfe8cf;
+    --red:#e5484d; --red-bg:#fdeeee; --red-border:#f6c6c8;
+    --gray-bg:#f1f1f5; --gray-border:#d9d9e3;
+    --gold:#b08d4f;
+    --radius:14px;
+    --shadow:0 10px 30px rgba(60,40,140,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Heebo',sans-serif;background:var(--bg);color:var(--ink);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .phone-card{
+    width:100%;max-width:420px;background:var(--card);border-radius:22px;
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .invite-img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover;background:#efece2}
+  .content{padding:26px 24px 30px;text-align:center}
+  .greet{font-size:17px;line-height:1.55;color:var(--ink)}
+  .couple{
+    font-family:'Frank Ruhl Libre',serif;font-weight:700;color:var(--gold);
+    font-size:30px;margin:6px 0 2px;letter-spacing:.5px;
+  }
+  .heart{color:var(--gold);font-size:13px;opacity:.7}
+  .event-date{color:var(--muted);font-size:14px;margin-top:4px}
+  .question{font-weight:700;font-size:17px;margin:22px 0 14px}
+  .choices{display:flex;gap:10px;justify-content:center}
+  .choice{
+    flex:1;max-width:110px;padding:10px 0;border-radius:999px;font-family:inherit;
+    font-size:16px;font-weight:600;cursor:pointer;transition:all .18s ease;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .choice:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+  .choice.yes{background:var(--green-bg);border:1.5px solid var(--green-border);color:var(--green)}
+  .choice.no{background:var(--red-bg);border:1.5px solid var(--red-border);color:var(--red)}
+  .choice.maybe{background:var(--gray-bg);border:1.5px solid var(--gray-border);color:#5b5b68}
+  .choice.yes.active{background:var(--green);border-color:var(--green);color:#fff}
+  .choice.no.active{background:var(--red);border-color:var(--red);color:#fff}
+  .choice.maybe.active{background:#5b5b68;border-color:#5b5b68;color:#fff}
+  .choice .check{display:none;font-size:13px}
+  .choice.active .check{display:inline}
+
+  .count-row{max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease,opacity .3s ease,margin .3s ease}
+  .count-row.open{max-height:130px;opacity:1;margin-top:20px}
+  .count-label{font-weight:600;font-size:15px;margin-bottom:10px}
+  .stepper{display:flex;align-items:center;justify-content:center;gap:14px}
+  .stepper button{
+    width:40px;height:40px;border-radius:10px;border:1.5px solid var(--gray-border);
+    background:#fff;font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;
+    transition:background .15s;
+  }
+  .stepper button:hover{background:var(--gray-bg)}
+  .stepper button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+  .stepper .count{
+    min-width:64px;padding:8px 0;border:1.5px solid var(--gray-border);border-radius:10px;
+    font-size:18px;font-weight:700;text-align:center;
+  }
+  .notes-block{margin-top:22px;text-align:right}
+  .notes-block label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  .notes-block textarea{
+    width:100%;border:1.5px solid var(--gray-border);border-radius:12px;padding:11px 14px;
+    font-family:inherit;font-size:15px;resize:none;height:52px;color:var(--ink);
+  }
+  .notes-block textarea:focus{outline:none;border-color:var(--primary)}
+  .submit{
+    width:100%;margin-top:22px;padding:14px 0;border:none;border-radius:12px;
+    background:var(--primary);color:#fff;font-family:inherit;font-size:17px;font-weight:700;
+    cursor:pointer;transition:background .15s,transform .1s;
+  }
+  .submit:hover{background:var(--primary-dark)}
+  .submit:active{transform:scale(.985)}
+  .submit:disabled{opacity:.5;cursor:not-allowed}
+  .submit:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  .err{color:var(--red);font-size:14px;margin-top:12px;display:none}
+
+  /* loading + success screens */
+  .screen{display:none;padding:80px 30px;text-align:center;min-height:420px;
+    flex-direction:column;align-items:center;justify-content:center}
+  .screen.show{display:flex}
+  .spinner{width:56px;height:56px;position:relative;margin-bottom:26px}
+  .spinner span{
+    position:absolute;top:0;right:50%;width:10px;height:10px;border-radius:50%;
+    background:var(--primary);transform-origin:5px 28px;animation:fade 1s linear infinite;
+  }
+  @keyframes fade{0%{opacity:1}100%{opacity:.15}}
+  .loading-text{font-size:18px;font-weight:600;color:var(--ink);line-height:1.7}
+  .success-icon{
+    width:74px;height:74px;border-radius:50%;border:3px solid var(--green);
+    display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+    animation:pop .4s ease;
+  }
+  @keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+  .success-icon svg{width:36px;height:36px;stroke:var(--green);stroke-width:3;fill:none}
+  .thanks{font-size:32px;font-weight:800;color:var(--ink);margin-bottom:8px}
+  .thanks-sub{font-size:16px;color:var(--muted);line-height:1.6}
+  .divider{display:flex;align-items:center;gap:10px;color:var(--primary);margin-top:26px;opacity:.6}
+  .divider::before,.divider::after{content:"";width:46px;height:1px;background:var(--primary)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="phone-card">
+
+  <!-- ===== מסך הטופס ===== -->
+  <section id="formScreen">
+    <img id="inviteImg" class="invite-img" src="" alt="הזמנה לאירוע" hidden>
+    <div class="content">
+      <p class="greet">שלום,<br>הוזמנת לאירוע של</p>
+      <div class="couple" id="coupleName">…</div>
+      <div class="heart">♥</div>
+      <div class="event-date" id="eventDate"></div>
+
+      <p class="question">מאשרים הגעה לאירוע?</p>
+      <div class="choices" role="radiogroup" aria-label="אישור הגעה">
+        <button type="button" class="choice yes"   data-status="מגיעים"   role="radio" aria-checked="false"><span class="check">✓</span>כן</button>
+        <button type="button" class="choice no"    data-status="לא מגיעים" role="radio" aria-checked="false"><span class="check">✓</span>לא</button>
+        <button type="button" class="choice maybe" data-status="אולי"      role="radio" aria-checked="false">אולי</button>
+      </div>
+
+      <div class="count-row" id="countRow">
+        <p class="count-label">כמה אנשים מגיעים?</p>
+        <div class="stepper">
+          <button type="button" id="minus" aria-label="הפחתת כמות">−</button>
+          <div class="count" id="countVal" aria-live="polite">1</div>
+          <button type="button" id="plus" aria-label="הוספת כמות">+</button>
+        </div>
+      </div>
+
+      <div class="notes-block">
+        <label for="notes">הערות (אופציונלי)</label>
+        <textarea id="notes" placeholder="כתוב/י כאן..."></textarea>
+      </div>
+
+      <button class="submit" id="submitBtn">שלח</button>
+      <p class="err" id="errMsg"></p>
+    </div>
+  </section>
+
+  <!-- ===== מסך טעינה ===== -->
+  <section class="screen" id="loadingScreen">
+    <div class="spinner" id="spinner"></div>
+    <p class="loading-text">שולח פרטים...<br>נא להמתין</p>
+  </section>
+
+  <!-- ===== מסך הצלחה ===== -->
+  <section class="screen" id="successScreen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="4 12.5 10 18.5 20 6.5"/></svg>
+    </div>
+    <p class="thanks">תודה!</p>
+    <p class="thanks-sub">אישור ההגעה נקלט<br>בהצלחה.</p>
+    <div class="divider">♥</div>
+  </section>
+
+</main>
+
+<script>
+/* ================================================================
+   הגדרות — עדכן/י את הכתובת לאחר פריסת ה-Apps Script כ-Web App
+================================================================ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEkRzgJwXEIDAYkKqgI9d66-S9nQn9ajzzJiNmIpUImdlV689u5OWSDyDsQVdUzNXiEw/exec";
+
+/* קריאת פרמטרים מהקישור:
+   index.html?event=EVENT_ID&p=0541234567
+   הזיהוי מתבצע לפי 8 הספרות האחרונות של p (בד"כ מספר הטלפון) */
+const params  = new URLSearchParams(location.search);
+const eventId = params.get("event") || "default";
+const rawId   = params.get("p") || params.get("phone") || "";
+const guestKey = rawId.replace(/\D/g,"").slice(-8);   // 8 ספרות אחרונות
+
+/* ---------- בניית ספינר ---------- */
+const spinner = document.getElementById("spinner");
+for(let i=0;i<10;i++){
+  const dot=document.createElement("span");
+  dot.style.transform=`rotate(${i*36}deg) translateY(-1px)`;
+  dot.style.animationDelay=(i*0.1)+"s";
+  spinner.appendChild(dot);
+}
+
+/* ---------- טעינת פרטי האירוע (שם זוג, תאריך, תמונה) ---------- */
+fetch(`${SCRIPT_URL}?action=eventInfo&event=${encodeURIComponent(eventId)}`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d.ok) return;
+    document.getElementById("coupleName").textContent = d.event.name || "";
+    document.getElementById("eventDate").textContent  = d.event.date || "";
+    if(d.event.image){
+      const img=document.getElementById("inviteImg");
+      img.src=d.event.image; img.hidden=false;
+    }
+    document.title = "אישור הגעה – " + (d.event.name||"");
+  })
+  .catch(()=>{ document.getElementById("coupleName").textContent="האירוע"; });
+
+/* ---------- בחירת סטטוס ---------- */
+let status=null, count=1;
+const countRow=document.getElementById("countRow");
+document.querySelectorAll(".choice").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".choice").forEach(b=>{b.classList.remove("active");b.setAttribute("aria-checked","false");});
+    btn.classList.add("active"); btn.setAttribute("aria-checked","true");
+    status=btn.dataset.status;
+    countRow.classList.toggle("open", status==="מגיעים"); // הכמות נפתחת רק ב"כן"
+    hideErr();
+  });
+});
+
+/* ---------- מונה כמות ---------- */
+const countVal=document.getElementById("countVal");
+document.getElementById("plus").onclick =()=>{ if(count<30) countVal.textContent=++count; };
+document.getElementById("minus").onclick=()=>{ if(count>1)  countVal.textContent=--count; };
+
+/* ---------- שגיאות ---------- */
+const errMsg=document.getElementById("errMsg");
+function showErr(t){errMsg.textContent=t;errMsg.style.display="block";}
+function hideErr(){errMsg.style.display="none";}
+
+/* ---------- שליחה ---------- */
+document.getElementById("submitBtn").addEventListener("click",async ()=>{
+  if(!status){ showErr("נא לבחור תשובה לפני השליחה"); return; }
+
+  document.getElementById("formScreen").style.display="none";
+  document.getElementById("loadingScreen").classList.add("show");
+
+  const payload={
+    action:"rsvp",
+    event:eventId,
+    key:guestKey,                       // 8 ספרות אחרונות מהקישור
+    link:location.href,                 // הקישור המלא של האתר
+    status:status,
+    count: status==="מגיעים" ? count : 0,
+    notes:document.getElementById("notes").value.trim()
+  };
+
+  try{
+    const res=await fetch(SCRIPT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"}, // מונע preflight מול Apps Script
+      body:JSON.stringify(payload)
+    });
+    const d=await res.json();
+    if(!d.ok) throw new Error(d.error||"שגיאה");
+    document.getElementById("loadingScreen").classList.remove("show");
+    document.getElementById("successScreen").classList.add("show");
+  }catch(e){
+    document.getElementById("loadingScreen").classList.remove("show");
+    document.getElementById("formScreen").style.display="";
+    showErr("השליחה נכשלה, נסו שוב בעוד רגע");
+  }
+});
+</script>
+</body>
+</html>

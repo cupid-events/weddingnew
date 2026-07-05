@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דשבורד ניהול – אישורי הגעה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5fc; --card:#fff; --ink:#241f3d; --muted:#8b8b98; --line:#e8e7f1;
+    --primary:#6c4ce0; --primary-dark:#5538c9; --sidebar:#231c4f;
+    --green:#1f9d55; --green-bg:#e6f6ec;
+    --red:#e5484d;   --red-bg:#fdeeee;
+    --orange:#f5a623;--orange-bg:#fdf3e0;
+    --gray:#7c7c8a;  --gray-bg:#f1f1f5;
+    --shadow:0 6px 22px rgba(60,40,140,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  button{font-family:inherit;cursor:pointer}
+  input,select{font-family:inherit}
+  :focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+
+  /* ===== מסך התחברות ===== */
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:38px 34px;width:100%;max-width:380px;text-align:center}
+  .login-card h1{font-size:22px;margin-bottom:6px}
+  .login-card p{color:var(--muted);font-size:14px;margin-bottom:24px}
+  .login-card input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:15px;margin-bottom:12px}
+  .login-card input:focus{outline:none;border-color:var(--primary)}
+  .login-card .go{width:100%;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:16px;font-weight:700}
+  .login-card .go:hover{background:var(--primary-dark)}
+  .login-err{color:var(--red);font-size:14px;margin-top:10px;display:none}
+  .logo-badge{width:54px;height:54px;border-radius:14px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px}
+
+  /* ===== פריסה ===== */
+  #app{display:none;grid-template-columns:210px 1fr;min-height:100vh}
+  #app.show{display:grid}
+  aside{background:var(--sidebar);color:#cfcae8;padding:22px 14px;display:flex;flex-direction:column}
+  .brand{display:flex;gap:10px;align-items:center;color:#fff;padding:0 8px 22px}
+  .brand .mark{width:38px;height:38px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:19px}
+  .brand b{font-size:17px;display:block}
+  .brand small{font-size:11.5px;color:#a79fd6}
+  .nav-item{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;font-size:14.5px;color:#cfcae8;background:none;border:none;width:100%;text-align:right}
+  .nav-item.active,.nav-item:hover{background:var(--primary);color:#fff}
+  .side-footer{margin-top:auto;padding:14px 8px;border-top:1px solid #37306b;font-size:12.5px;color:#a79fd6}
+  .side-footer b{color:#fff;display:block;font-size:13.5px}
+  .logout{background:none;border:none;color:#a79fd6;font-size:12.5px;padding:0;margin-top:6px;text-decoration:underline}
+
+  main{padding:22px 26px;max-width:1240px}
+  .topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:20px}
+  .topbar h2{font-size:20px;display:flex;gap:8px;align-items:center}
+  .topbar .spacer{flex:1}
+  .select-wrap select,.topbar input[type=date]{padding:9px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:14px;color:var(--ink)}
+  .btn{padding:9px 16px;border:none;border-radius:10px;font-size:14px;font-weight:600}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.primary:hover{background:var(--primary-dark)}
+  .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .btn.ghost:hover{border-color:var(--primary);color:var(--primary)}
+  .btn.whatsapp{background:#25d366;color:#fff}
+
+  /* ===== כרטיסי סטטיסטיקה ===== */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+  .stat{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px 18px;cursor:pointer;border:2px solid transparent;transition:border .15s, transform .1s;text-align:right}
+  .stat:hover{transform:translateY(-2px)}
+  .stat.selected{border-color:var(--primary)}
+  .stat .head{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);font-weight:600}
+  .dot{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+  .stat .num{font-size:30px;font-weight:800;margin:4px 0 2px}
+  .stat .pct{font-size:13px;color:var(--muted)}
+  .bar{height:6px;border-radius:6px;background:var(--gray-bg);margin-top:10px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:6px}
+
+  /* ===== אזור אמצע: גרפים + סיכום ===== */
+  .mid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+  .panel{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+  .panel h3{font-size:15px;margin-bottom:14px}
+  .donut-wrap{display:flex;gap:16px;align-items:center;justify-content:center}
+  .legend{font-size:12.5px;display:flex;flex-direction:column;gap:6px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .ring-center{text-align:center}
+  .summary-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .summary-row:last-child{border-bottom:none}
+  .summary-row b{font-size:15px}
+
+  /* ===== טבלת אורחים ===== */
+  .table-panel{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+  .table-tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center}
+  .search{flex:1;min-width:200px;position:relative}
+  .search input{width:100%;padding:9px 38px 9px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:14px}
+  .search input:focus{outline:none;border-color:var(--primary)}
+  .search svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;text-align:right;padding:10px 8px;border-bottom:1.5px solid var(--line)}
+  td{padding:11px 8px;border-bottom:1px solid var(--line)}
+  tr:hover td{background:#faf9ff}
+  .tag{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12.5px;font-weight:600}
+  .tag.yes{background:var(--green-bg);color:var(--green)}
+  .tag.no{background:var(--red-bg);color:var(--red)}
+  .tag.maybe{background:var(--orange-bg);color:#c07d00}
+  .tag.none{background:var(--gray-bg);color:var(--gray)}
+  .wa-btn{width:30px;height:30px;border-radius:8px;border:none;background:var(--green-bg);display:inline-flex;align-items:center;justify-content:center}
+  .wa-btn svg{width:16px;height:16px;fill:var(--green)}
+  .empty{padding:34px;text-align:center;color:var(--muted);font-size:14px}
+  .table-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:var(--muted)}
+
+  /* ===== מודאל ===== */
+  .modal-bg{position:fixed;inset:0;background:rgba(30,20,70,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:18px;padding:24px;width:100%;max-width:460px;max-height:82vh;overflow:auto}
+  .modal h3{margin-bottom:14px;font-size:17px}
+  .modal .row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;gap:10px}
+  .modal input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;margin-bottom:10px}
+  .modal .actions{display:flex;gap:10px;justify-content:flex-start;margin-top:14px}
+  .close-x{float:left;background:none;border:none;font-size:20px;color:var(--muted)}
+  .link-box{background:var(--gray-bg);border-radius:10px;padding:10px 12px;font-size:12.5px;direction:ltr;text-align:left;word-break:break-all;margin-top:6px}
+
+  #toast{position:fixed;bottom:22px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:11px 22px;border-radius:999px;font-size:14px;display:none;z-index:60}
+
+  @media (max-width:980px){ .mid{grid-template-columns:1fr} #app{grid-template-columns:1fr} aside{flex-direction:row;align-items:center;overflow-x:auto;gap:6px;padding:12px} .side-footer,.brand small{display:none} .nav-item{width:auto;white-space:nowrap} .brand{padding:0 10px 0 0} }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===================== התחברות ===================== -->
+<div id="loginScreen">
+  <form class="login-card" id="loginForm">
+    <div class="logo-badge">👥</div>
+    <h1>RSVP · ניהול אירועים</h1>
+    <p>כניסה למנהלי אירועים</p>
+    <input type="text" id="loginUser" placeholder="שם משתמש" autocomplete="username" required>
+    <input type="password" id="loginPass" placeholder="סיסמה" autocomplete="current-password" required>
+    <button class="go" type="submit">כניסה</button>
+    <p class="login-err" id="loginErr">שם משתמש או סיסמה שגויים</p>
+  </form>
+</div>
+
+<!-- ===================== האפליקציה ===================== -->
+<div id="app">
+  <aside>
+    <div class="brand">
+      <div class="mark">👥</div>
+      <div><b>RSVP</b><small>ניהול אירועים</small></div>
+    </div>
+    <button class="nav-item active">🏠 דשבורד</button>
+    <button class="nav-item" id="navAddEvent">📅 אירוע חדש</button>
+    <button class="nav-item" id="navRefresh">🔄 רענון נתונים</button>
+    <div class="side-footer">
+      <b id="adminName">מנהל</b>
+      מחובר/ת למערכת
+      <button class="logout" id="logoutBtn">יציאה</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <h2>📋 דשבורד</h2>
+      <div class="spacer"></div>
+      <div class="select-wrap"><select id="eventSelect" aria-label="בחירת אירוע"></select></div>
+      <button class="btn ghost" id="copyLinkBtn">🔗 הזמן קישור הזמנה</button>
+      <button class="btn ghost" id="addGuestBtn">➕ הוסף אורח חדש</button>
+      <button class="btn primary" id="exportBtn">יצוא לאקסל</button>
+    </div>
+
+    <!-- כרטיסי סטטוס — לחיצה מסננת את הטבלה -->
+    <div class="stats" id="statCards"></div>
+
+    <div class="mid">
+      <div class="panel">
+        <h3>חלוקת סטטוסים</h3>
+        <div class="donut-wrap">
+          <svg id="donut" width="150" height="150" viewBox="0 0 42 42" role="img" aria-label="חלוקת סטטוסים"></svg>
+          <div class="legend" id="donutLegend"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>אחוזי הגעה</h3>
+        <div class="donut-wrap">
+          <svg id="ring" width="150" height="150" viewBox="0 0 42 42" role="img" aria-label="אחוז אישורי הגעה"></svg>
+        </div>
+        <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:8px" id="ringSub"></p>
+      </div>
+      <div class="panel">
+        <h3>סיכום כללי</h3>
+        <div id="summary"></div>
+        <button class="btn whatsapp" style="width:100%;margin-top:14px" id="bulkReminderBtn">
+          שלח תזכורות בוואטסאפ למי שלא ענה
+        </button>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div class="table-tools">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          <input type="text" id="searchInput" placeholder="חיפוש אורח...">
+        </div>
+        <select id="statusFilter" aria-label="סינון לפי סטטוס">
+          <option value="">הכל</option>
+          <option value="מגיעים">אישרו הגעה</option>
+          <option value="לא מגיעים">לא מגיעים</option>
+          <option value="אולי">אולי</option>
+          <option value="לא ענו">לא ענו</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>שם מלא</th><th>טלפון</th><th>סטטוס</th><th>כמות</th><th>הערות</th><th>פעולות</th></tr></thead>
+          <tbody id="guestRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState" style="display:none">לא נמצאו אורחים תואמים</div>
+      <div class="table-footer"><span id="tableCount"></span></div>
+    </div>
+  </main>
+</div>
+
+<!-- מודאל: תזכורות -->
+<div class="modal-bg" id="reminderModal">
+  <div class="modal">
+    <button class="close-x" data-close>&times;</button>
+    <h3>שליחת תזכורות בוואטסאפ</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:10px">לחיצה על "שלח" תפתח וואטסאפ עם הודעה מוכנה + קישור אישי לאורח.</p>
+    <div id="reminderList"></div>
+  </div>
+</div>
+
+<!-- מודאל: הוספת אורח -->
+<div class="modal-bg" id="addGuestModal">
+  <div class="modal">
+    <button class="close-x" data-close>&times;</button>
+    <h3>הוספת אורח חדש</h3>
+    <input type="text" id="newGuestName" placeholder="שם מלא">
+    <input type="tel" id="newGuestPhone" placeholder="מספר טלפון (למשל 0541234567)">
+    <div class="actions">
+      <button class="btn primary" id="saveGuestBtn">שמירה</button>
+      <button class="btn ghost" data-close>ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- מודאל: אירוע חדש -->
+<div class="modal-bg" id="addEventModal">
+  <div class="modal">
+    <button class="close-x" data-close>&times;</button>
+    <h3>יצירת אירוע חדש</h3>
+    <input type="text" id="newEventId" placeholder="מזהה באנגלית (למשל yuval-noa)">
+    <input type="text" id="newEventName" placeholder="שם האירוע (למשל יובל & נועה)">
+    <input type="text" id="newEventDate" placeholder="תאריך (למשל 24.06.2025)">
+    <input type="url" id="newEventImage" placeholder="קישור לתמונת ההזמנה (אופציונלי)">
+    <div class="actions">
+      <button class="btn primary" id="saveEventBtn">יצירה</button>
+      <button class="btn ghost" data-close>ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- מודאל: קישור הזמנה -->
+<div class="modal-bg" id="linkModal">
+  <div class="modal">
+    <button class="close-x" data-close>&times;</button>
+    <h3>קישור הזמנה לאורח</h3>
+    <p style="font-size:13.5px;color:var(--muted)">לכל אורח נשלח קישור עם סיומת הטלפון שלו לזיהוי:</p>
+    <div class="link-box" id="linkExample"></div>
+    <div class="actions"><button class="btn primary" id="copyBaseLink">העתקת תבנית הקישור</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================================================================
+   הגדרות — עדכן/י לאחר פריסת ה-Apps Script
+================================================================ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEkRzgJwXEIDAYkKqgI9d66-S9nQn9ajzzJiNmIpUImdlV689u5OWSDyDsQVdUzNXiEw/exec";
+const GUEST_PAGE_URL = "https://your-site.example/index.html";            // ← כתובת דף האורח
+
+/* ---------- מצב ---------- */
+let auth = null;                 // {user, pass}
+let events = [];                 // [{id,name,date,image}]
+let currentEvent = null;
+let guests = [];                 // [{name,phone,status,count,notes,updated}]
+let filterStatus = "";           // סינון פעיל
+let searchTerm = "";
+
+const $ = id => document.getElementById(id);
+const STATUS_META = {
+  "מגיעים":     {label:"אישרו הגעה", color:"var(--green)",  bg:"yes",  icon:"✓", hex:"#1f9d55"},
+  "לא מגיעים":  {label:"לא מגיעים",  color:"var(--red)",    bg:"no",   icon:"✕", hex:"#e5484d"},
+  "אולי":       {label:"אולי",        color:"var(--orange)", bg:"maybe",icon:"?", hex:"#f5a623"},
+  "לא ענו":     {label:"לא ענו",      color:"var(--gray)",   bg:"none", icon:"!", hex:"#9a9aa8"}
+};
+
+/* ---------- API ---------- */
+async function api(action, extra={}, method="GET"){
+  if(method==="GET"){
+    const q=new URLSearchParams({action,user:auth.user,pass:auth.pass,...extra});
+    const r=await fetch(`${SCRIPT_URL}?${q}`);
+    return r.json();
+  }
+  const r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({action,user:auth.user,pass:auth.pass,...extra})});
+  return r.json();
+}
+
+/* ---------- התחברות ---------- */
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  auth={user:$("loginUser").value.trim(),pass:$("loginPass").value};
+  try{
+    const d=await api("login");
+    if(!d.ok) throw 0;
+    sessionStorage.setItem("rsvpAuth",JSON.stringify(auth));
+    $("adminName").textContent=d.name||auth.user;
+    enterApp();
+  }catch{ $("loginErr").style.display="block"; }
+});
+const saved=sessionStorage.getItem("rsvpAuth");
+if(saved){ auth=JSON.parse(saved); api("login").then(d=>{ if(d.ok){$("adminName").textContent=d.name||auth.user;enterApp();} }); }
+
+$("logoutBtn").onclick=()=>{ sessionStorage.removeItem("rsvpAuth"); location.reload(); };
+
+async function enterApp(){
+  $("loginScreen").style.display="none";
+  $("app").classList.add("show");
+  const d=await api("events");
+  events=d.events||[];
+  const sel=$("eventSelect");
+  sel.innerHTML=events.map(ev=>`<option value="${ev.id}">${ev.name} · ${ev.date||""}</option>`).join("") || `<option value="">אין אירועים</option>`;
+  currentEvent=events[0]||null;
+  sel.onchange=()=>{ currentEvent=events.find(ev=>ev.id===sel.value); loadData(); };
+  loadData();
+}
+
+/* ---------- טעינת נתונים ---------- */
+async function loadData(){
+  if(!currentEvent) return;
+  const d=await api("dashboard",{event:currentEvent.id});
+  guests=(d.guests||[]).map(g=>({...g,status:g.status||"לא ענו"}));
+  render();
+}
+$("navRefresh").onclick=()=>{ loadData(); toast("הנתונים רועננו"); };
+
+/* ---------- חישוב סטטיסטיקות ---------- */
+function stats(){
+  const s={"מגיעים":0,"לא מגיעים":0,"אולי":0,"לא ענו":0};
+  let attending=0;
+  guests.forEach(g=>{ s[g.status]=(s[g.status]||0)+1; if(g.status==="מגיעים") attending+=Number(g.count)||0; });
+  const total=guests.length, answered=total-s["לא ענו"];
+  return {s,total,answered,attending};
+}
+
+/* ---------- רינדור ---------- */
+function render(){ renderStats(); renderCharts(); renderSummary(); renderTable(); }
+
+function renderStats(){
+  const {s,total}=stats();
+  $("statCards").innerHTML=Object.entries(STATUS_META).map(([key,m])=>{
+    const n=s[key],p=total?Math.round(n/total*100):0;
+    return `<button class="stat ${filterStatus===key?"selected":""}" data-status="${key}">
+      <div class="head"><span class="dot" style="background:${m.hex}">${m.icon}</span>${m.label}</div>
+      <div class="num" style="color:${m.hex}">${n}</div>
+      <div class="pct">${p}%</div>
+      <div class="bar"><i style="width:${p}%;background:${m.hex}"></i></div>
+    </button>`;
+  }).join("")+`
+    <div class="stat" style="cursor:default">
+      <div class="head"><span class="dot" style="background:var(--primary)">👥</span>סה"כ מוזמנים</div>
+      <div class="num">${total}</div>
+      <div class="pct">סה"כ משיבים: ${stats().answered} (${total?Math.round(stats().answered/total*100):0}%)</div>
+    </div>`;
+  document.querySelectorAll(".stat[data-status]").forEach(b=>{
+    b.onclick=()=>{ filterStatus = filterStatus===b.dataset.status ? "" : b.dataset.status; $("statusFilter").value=filterStatus; render(); };
+  });
+}
+
+function donutSVG(svg,segments,centerHTML){
+  const C=2*Math.PI*15.915; let off=25;
+  svg.innerHTML=`<circle cx="21" cy="21" r="15.915" fill="none" stroke="#eeedf6" stroke-width="5"></circle>`;
+  segments.forEach(seg=>{
+    if(seg.pct<=0)return;
+    svg.innerHTML+=`<circle cx="21" cy="21" r="15.915" fill="none" stroke="${seg.color}" stroke-width="5"
+      stroke-dasharray="${seg.pct} ${100-seg.pct}" stroke-dashoffset="${off}" stroke-linecap="butt"></circle>`;
+    off-=seg.pct;
+  });
+  if(centerHTML) svg.innerHTML+=centerHTML;
+}
+
+function renderCharts(){
+  const {s,total,answered,attending}=stats();
+  const segs=Object.entries(STATUS_META).map(([k,m])=>({pct: total?s[k]/total*100:0, color:m.hex, label:m.label, n:s[k]}));
+  donutSVG($("donut"),segs);
+  $("donutLegend").innerHTML=segs.map(x=>`<span><i style="background:${x.color}"></i>${x.label} (${Math.round(x.pct)}%)</span>`).join("");
+
+  const yesPct= total? Math.round(s["מגיעים"]/total*100):0;
+  donutSVG($("ring"),[{pct:yesPct,color:"#1f9d55"}],
+    `<text x="21" y="20" text-anchor="middle" font-size="7.5" font-weight="800" fill="#241f3d">${yesPct}%</text>
+     <text x="21" y="27" text-anchor="middle" font-size="3.2" fill="#8b8b98">אישרו הגעה</text>`);
+  $("ringSub").textContent=`${answered} משיבים מתוך ${total} מוזמנים`;
+}
+
+function renderSummary(){
+  const {s,total,answered,attending}=stats();
+  $("summary").innerHTML=`
+    <div class="summary-row"><span>סך כל מוזמנים</span><b>${total}</b></div>
+    <div class="summary-row"><span>סך כל משיבים</span><b>${answered}</b></div>
+    <div class="summary-row"><span>שטרם השיבו</span><b>${s["לא ענו"]}</b></div>
+    <div class="summary-row"><span>סך משתתפים צפויים</span><b>${attending}</b></div>`;
+  $("bulkReminderBtn").textContent=`שלח תזכורות בוואטסאפ למי שלא ענה (${s["לא ענו"]})`;
+}
+
+function guestLink(g){
+  const digits=(g.phone||"").replace(/\D/g,"");
+  return `${GUEST_PAGE_URL}?event=${encodeURIComponent(currentEvent.id)}&p=${digits}`;
+}
+function waLink(g){
+  const digits=(g.phone||"").replace(/\D/g,"");
+  const intl=digits.startsWith("0")?"972"+digits.slice(1):digits;
+  const msg=`היי ${g.name||""}! 💜 נשמח לדעת אם תגיעו לאירוע של ${currentEvent?.name||""}. לאישור הגעה: ${guestLink(g)}`;
+  return `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
+}
+
+function renderTable(){
+  const term=searchTerm.trim();
+  const rows=guests.filter(g=>
+    (!filterStatus||g.status===filterStatus)&&
+    (!term|| (g.name||"").includes(term)||(g.phone||"").includes(term))
+  );
+  $("guestRows").innerHTML=rows.map(g=>{
+    const m=STATUS_META[g.status]||STATUS_META["לא ענו"];
+    return `<tr>
+      <td>${esc(g.name)}</td>
+      <td dir="ltr" style="text-align:right">${esc(g.phone)}</td>
+      <td><span class="tag ${m.bg}">${m.label}</span></td>
+      <td>${g.status==="מגיעים"?(g.count||""):"–"}</td>
+      <td>${esc(g.notes)||"–"}</td>
+      <td><a class="wa-btn" href="${waLink(g)}" target="_blank" rel="noopener" title="שליחת וואטסאפ">
+        <svg viewBox="0 0 32 32"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.6.8 5 2.3 7L4 29l7.2-2.2c1.9 1 4 1.6 6.3 1.6h.5c6.6 0 12-5.4 12-12S22.6 3 16 3zm6.6 17c-.3.8-1.6 1.5-2.2 1.6-.6.1-1.3.1-2.1-.1-.5-.2-1.1-.4-1.9-.7-3.4-1.5-5.6-4.9-5.8-5.1-.2-.2-1.4-1.8-1.4-3.5s.9-2.5 1.2-2.8c.3-.3.7-.4.9-.4h.7c.2 0 .5-.1.8.6.3.7 1 2.4 1.1 2.6.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.6.7c-.2.2-.4.4-.2.8.2.4 1 1.6 2.1 2.6 1.4 1.3 2.6 1.7 3 1.9.4.2.6.1.8-.1.2-.2 1-1.1 1.2-1.5.2-.4.5-.3.8-.2.3.1 2.1 1 2.4 1.2.4.2.6.3.7.4.1.2.1.9-.1 1.4z"/></svg>
+      </a></td>
+    </tr>`;
+  }).join("");
+  $("emptyState").style.display=rows.length?"none":"block";
+  $("tableCount").textContent=`מציג ${rows.length} מתוך ${guests.length} אורחים`;
+}
+function esc(s){return (s??"").toString().replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));}
+
+$("searchInput").addEventListener("input",e=>{searchTerm=e.target.value;renderTable();});
+$("statusFilter").addEventListener("change",e=>{filterStatus=e.target.value;render();});
+
+/* ---------- תזכורות וואטסאפ ---------- */
+$("bulkReminderBtn").onclick=()=>{
+  const pending=guests.filter(g=>g.status==="לא ענו"&&g.phone);
+  $("reminderList").innerHTML=pending.length?pending.map(g=>`
+    <div class="row"><span>${esc(g.name)} <small style="color:var(--muted)" dir="ltr">${esc(g.phone)}</small></span>
+    <a class="btn whatsapp" style="padding:6px 14px;font-size:13px;text-decoration:none" href="${waLink(g)}" target="_blank" rel="noopener">שלח</a></div>
+  `).join(""):`<div class="empty">כולם כבר ענו 🎉</div>`;
+  openModal("reminderModal");
+};
+
+/* ---------- הוספת אורח ---------- */
+$("addGuestBtn").onclick=()=>openModal("addGuestModal");
+$("saveGuestBtn").onclick=async()=>{
+  const name=$("newGuestName").value.trim(), phone=$("newGuestPhone").value.trim();
+  if(!name||!phone) return toast("נא למלא שם וטלפון");
+  const d=await api("addGuest",{event:currentEvent.id,name,phone},"POST");
+  if(d.ok){ closeModals(); $("newGuestName").value=$("newGuestPhone").value=""; toast("האורח נוסף"); loadData(); }
+  else toast(d.error||"שגיאה בהוספה");
+};
+
+/* ---------- אירוע חדש ---------- */
+$("navAddEvent").onclick=()=>openModal("addEventModal");
+$("saveEventBtn").onclick=async()=>{
+  const id=$("newEventId").value.trim(),name=$("newEventName").value.trim();
+  if(!id||!name) return toast("נא למלא מזהה ושם");
+  const d=await api("createEvent",{id,name,date:$("newEventDate").value.trim(),image:$("newEventImage").value.trim()},"POST");
+  if(d.ok){ closeModals(); toast("האירוע נוצר"); enterApp(); }
+  else toast(d.error||"שגיאה ביצירה");
+};
+
+/* ---------- קישור הזמנה ---------- */
+$("copyLinkBtn").onclick=()=>{
+  $("linkExample").textContent=`${GUEST_PAGE_URL}?event=${currentEvent?.id||"EVENT"}&p=05XXXXXXXX`;
+  openModal("linkModal");
+};
+$("copyBaseLink").onclick=()=>{
+  navigator.clipboard.writeText($("linkExample").textContent).then(()=>toast("הקישור הועתק"));
+};
+
+/* ---------- יצוא לאקסל (CSV) ---------- */
+$("exportBtn").onclick=()=>{
+  const head=["שם מלא","טלפון","סטטוס","כמות מגיעים","הערות"];
+  const lines=[head.join(",")].concat(guests.map(g=>
+    [g.name,g.phone,g.status,g.count||"",(g.notes||"").replace(/,/g," ")].map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(",")
+  ));
+  const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`אורחים-${currentEvent?.id||"event"}.csv`;
+  a.click();
+};
+
+/* ---------- מודאלים + טוסט ---------- */
+function openModal(id){$(id).classList.add("show");}
+function closeModals(){document.querySelectorAll(".modal-bg").forEach(m=>m.classList.remove("show"));}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeModals);
+document.querySelectorAll(".modal-bg").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModals();}));
+let toastTimer;
+function toast(t){const el=$("toast");el.textContent=t;el.style.display="block";clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.style.display="none",2600);}
+</script>
+</body>
+</html>
