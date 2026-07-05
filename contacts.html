@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ייבוא אנשי קשר מהאייפון</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Frank+Ruhl+Libre:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --ink: #1c2733;
@@ -143,6 +144,21 @@
   }
   .btn-clear:hover { color: var(--danger); border-color: var(--danger); }
 
+  .btn-excel {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-excel:hover { background: #0d5f58; }
+  .btn-excel:disabled { background: #b9c4cf; cursor: not-allowed; }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -236,7 +252,7 @@
   <header>
     <div class="eyebrow">פנקס אישי</div>
     <h1>ייבוא אנשי קשר</h1>
-    <p class="subtitle">שתפו אנשי קשר מהאייפון כקובץ, העלו אותו כאן — והטבלה תיבנה לבד.</p>
+    <p class="subtitle">שתפו אנשי קשר מהאייפון או מהאנדרואיד כקובץ, העלו אותו כאן — והטבלה תיבנה לבד.</p>
   </header>
 
   <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="העלאת קובץ אנשי קשר">
@@ -247,10 +263,19 @@
   <input type="file" id="fileInput" accept=".vcf,text/vcard,text/x-vcard" multiple>
 
   <details class="howto">
-    <summary>איך מוציאים איש קשר מהאייפון?</summary>
+    <summary>איך מוציאים אנשי קשר מאייפון? 🍏</summary>
     <div class="steps">
       <strong>איש קשר בודד:</strong> פתחו את אפליקציית "אנשי קשר" → בחרו איש קשר → גללו למטה → <strong>"שתף איש קשר"</strong> → שמרו ל"קבצים" (או שלחו לעצמכם) → העלו את קובץ ה‑vcf כאן.<br><br>
       <strong>כל אנשי הקשר בבת אחת:</strong> היכנסו מהמחשב ל‑iCloud.com → אנשי קשר → בחרו הכול → גלגל השיניים → <strong>"Export vCard"</strong> → יתקבל קובץ ‎.vcf אחד עם כולם, והעלו אותו כאן.
+    </div>
+  </details>
+
+  <details class="howto">
+    <summary>איך מוציאים אנשי קשר מאנדרואיד? 🤖</summary>
+    <div class="steps">
+      <strong>איש קשר בודד:</strong> פתחו את אפליקציית "אנשי קשר" → בחרו איש קשר → לחצו על שלוש הנקודות (⋮) בפינה → <strong>"שיתוף"</strong> → בחרו לשמור לקבצים / Drive או לשלוח לעצמכם → העלו את קובץ ה‑vcf כאן.<br><br>
+      <strong>כל אנשי הקשר בבת אחת:</strong> פתחו את אפליקציית "אנשי קשר" → <strong>"תיקון וניהול"</strong> (או הגדרות ⚙️) → <strong>"ייצוא לקובץ"</strong> (Export) → יישמר קובץ ‎.vcf אחד עם כל אנשי הקשר → העלו אותו כאן.<br><br>
+      <span style="font-size:13px">💡 במכשירי סמסונג: אנשי קשר → תפריט (☰) → ניהול אנשי קשר → ייבוא/ייצוא אנשי קשר → ייצוא.</span>
     </div>
   </details>
 
@@ -258,6 +283,7 @@
     <h2>הטבלה</h2>
     <div class="head-actions">
       <span class="count" id="count">0 אנשי קשר</span>
+      <button class="btn-excel" id="excelBtn">⬇️ הורדה לאקסל</button>
       <button class="btn-clear" id="clearBtn">ניקוי הרשימה</button>
     </div>
   </div>
@@ -413,6 +439,32 @@
     contacts = [];
     render();
     showToast('הרשימה נוקתה');
+  });
+
+  /* ---------- ייצוא לאקסל ---------- */
+
+  const excelBtn = document.getElementById('excelBtn');
+
+  excelBtn.addEventListener('click', () => {
+    if (!contacts.length) {
+      showToast('הטבלה ריקה — אין מה לייצא');
+      return;
+    }
+
+    const rows = contacts.map(c => ({
+      'שם': c.name,
+      'טלפון': c.phone.replace(/\n/g, ', ')
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: ['שם', 'טלפון'] });
+    ws['!cols'] = [{ wch: 25 }, { wch: 22 }];
+
+    const wb = XLSX.utils.book_new();
+    wb.Workbook = { Views: [{ RTL: true }] };
+    XLSX.utils.book_append_sheet(wb, ws, 'אנשי קשר');
+
+    XLSX.writeFile(wb, 'אנשי-קשר.xlsx');
+    showToast('קובץ האקסל ירד ✓');
   });
 
   /* ---------- רינדור ---------- */
