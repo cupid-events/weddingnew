@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>אישור הגעה</title>
+<title>קופידון – אישור הגעה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f6f5fc; --card:#ffffff; --ink:#241f3d; --muted:#8b8b98;
-    --primary:#6c4ce0; --primary-dark:#5538c9;
+    --bg:#faf5f4; --card:#ffffff; --ink:#3a1512; --muted:#9a8a88;
+    --primary:#a6201e; --primary-dark:#851512;
     --green:#1f9d55; --green-bg:#e6f6ec; --green-border:#bfe8cf;
     --red:#e5484d; --red-bg:#fdeeee; --red-border:#f6c6c8;
     --gray-bg:#f1f1f5; --gray-border:#d9d9e3;
     --gold:#b08d4f;
     --radius:14px;
-    --shadow:0 10px 30px rgba(60,40,140,.10);
+    --shadow:0 10px 30px rgba(140,30,25,.12);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
@@ -28,6 +28,8 @@
   }
   .invite-img{width:100%;height:auto;display:block;background:#efece2}
   .content{padding:26px 24px 30px;text-align:center}
+  .brand-logo{width:66px;height:66px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;
+    box-shadow:0 4px 14px rgba(140,30,25,.25)}
   .greet{font-size:17px;line-height:1.55;color:var(--ink)}
   .couple{
     font-family:'Frank Ruhl Libre',serif;font-weight:700;color:var(--gold);
@@ -76,10 +78,10 @@
   .notes-block textarea:focus{outline:none;border-color:var(--primary)}
   .submit{
     width:100%;margin-top:22px;padding:14px 0;border:none;border-radius:12px;
-    background:var(--primary);color:#fff;font-family:inherit;font-size:17px;font-weight:700;
+    background:var(--green);color:#fff;font-family:inherit;font-size:17px;font-weight:700;
     cursor:pointer;transition:background .15s,transform .1s;
   }
-  .submit:hover{background:var(--primary-dark)}
+  .submit:hover{background:#178044}
   .submit:active{transform:scale(.985)}
   .submit:disabled{opacity:.5;cursor:not-allowed}
   .submit:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
@@ -122,6 +124,7 @@
   <!-- ===== מסך הטופס ===== -->
   <section id="formScreen" style="display:none">
     <div class="content">
+      <img src="logo.png" class="brand-logo" alt="קופידון">
       <p class="greet">שלום,<br>הוזמנת לאירוע של</p>
       <div class="couple" id="coupleName">…</div>
       <div class="heart">♥</div>
@@ -168,6 +171,7 @@
     <p class="thanks">תודה!</p>
     <p class="thanks-sub">אישור ההגעה נקלט<br>בהצלחה.</p>
     <div class="divider">♥</div>
+    <img src="logo.png" class="brand-logo" style="margin-top:26px;margin-bottom:0" alt="קופידון">
   </section>
 
 </main>
@@ -176,7 +180,7 @@
 /* ================================================================
    הגדרות — עדכן/י את הכתובת לאחר פריסת ה-Apps Script כ-Web App
 ================================================================ */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUc0m1sqmKx9lKsLQD_26alO_WUTxAW4DgYRmmFHM5dUWyRLa-XK2c26qYc9clPHc45g/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby17ckKKmiGGY0UvaY_PucAhv2xK8tYEbQ602Yby75Lp0Gq4gwAHlU5LKO4v0arjVqIzQ/exec";
 
 /* קריאת פרמטרים מהקישור:
    index.html?event=EVENT_ID&p=0541234567
