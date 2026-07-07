@@ -166,8 +166,9 @@
   .row-del:hover{color:var(--red);border-color:var(--red)}
   .chk{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:14px 0 4px;color:var(--ink)}
   .chk input{width:17px;height:17px;accent-color:var(--primary)}
-  .stable{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;user-select:none;
+  .stable{position:absolute;transform:translate(-50%,-50%);cursor:pointer;touch-action:none;user-select:none;
     transition:filter .15s}
+  .floor.drag-on .stable{cursor:grab}
   .stable:hover{filter:drop-shadow(0 6px 14px rgba(140,30,25,.28))}
   .stable:active{cursor:grabbing}
   .stable .tbl{position:absolute;inset:18px;border-radius:50%;background:#fff;border:2.5px solid var(--primary);
@@ -187,6 +188,7 @@
   .chair-demo{display:inline-block;width:13px;height:13px;border-radius:50%;background:#fff;
     border:2px solid #dcaaa5;vertical-align:-2px}
   .chair-demo.taken{background:var(--green);border-color:#178044}
+  .btn.toggle-on{background:var(--primary);color:#fff;border-color:var(--primary)}
   .unassigned-panel{max-height:540px;overflow:auto}
   .unassigned-panel input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;
     font-size:13.5px;margin-bottom:10px}
@@ -363,6 +365,7 @@
     <!-- ===== סידור הושבה ===== -->
     <div id="viewSeating" style="display:none">
       <div class="seat-toolbar">
+        <button class="btn ghost" id="dragToggle">🔒 אפשר לגרור</button>
         <button class="btn primary" id="addTableBtn">➕ הוסף שולחן</button>
         <button class="btn ghost" id="bulkBtn">🪄 סידור שולחנות</button>
         <button class="btn ghost" id="resetTablesBtn" style="color:var(--red);border-color:var(--red-border)">🗑️ איפוס שולחנות</button>
@@ -373,7 +376,7 @@
       </div>
       <div class="seat-layout">
         <div class="floor" id="floor">
-          <div class="hint">גוררים להזזה · לוחצים לעריכה ושיבוץ · גוללים למטה לעוד מקום</div>
+          <div class="hint">לוחצים על שולחן לעריכה ושיבוץ · להזזת שולחנות הפעילו גרירה</div>
           <div class="floor-canvas" id="floorCanvas"></div>
         </div>
         <div class="panel unassigned-panel">
@@ -910,6 +913,19 @@ function renderUnassigned(){
 }
 $("unSearch").addEventListener("input",renderUnassigned);
 
+/* ---------- מתג גרירה: כברירת מחדל השולחנות נעולים ---------- */
+let dragEnabled=false;
+$("dragToggle").onclick=()=>{
+  dragEnabled=!dragEnabled;
+  $("dragToggle").classList.toggle("toggle-on",dragEnabled);
+  $("dragToggle").textContent=dragEnabled?"✋ גרירה פעילה":"🔒 אפשר לגרור";
+  $("floor").classList.toggle("drag-on",dragEnabled);
+  const hint=$("floor").querySelector(".hint");
+  if(hint) hint.textContent=dragEnabled
+    ?"מצב גרירה פעיל – גוררים שולחנות למיקום הרצוי"
+    :"לוחצים על שולחן לעריכה ושיבוץ · להזזת שולחנות הפעילו גרירה";
+};
+
 /* ---------- גרירת שולחנות ---------- */
 let drag=null;
 function tableDown(e){
@@ -921,7 +937,7 @@ function tableDown(e){
   e.currentTarget.setPointerCapture(e.pointerId);
 }
 function tableMove(e){
-  if(!drag) return;
+  if(!drag||!dragEnabled) return;
   const dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
   if(Math.abs(dx)>6||Math.abs(dy)>6) drag.moved=true;
   if(!drag.moved) return;
