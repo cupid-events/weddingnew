@@ -501,7 +501,7 @@
 /* ================================================================
    הגדרות — עדכן/י לאחר פריסת ה-Apps Script
 ================================================================ */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby17ckKKmiGGY0UvaY_PucAhv2xK8tYEbQ602Yby75Lp0Gq4gwAHlU5LKO4v0arjVqIzQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9u-P8dQa29K4V2t3x4RK-F3uBLXHqI2qhrEQ56I_R2o_QdQ5DOK99VonvyeAu_tPAMg/exec";
 const GUEST_PAGE_URL = "https://your-site.example/index.html";            // ← כתובת דף האורח
 
 /* ---------- מצב ---------- */
@@ -571,7 +571,7 @@ $("loginForm").addEventListener("submit",async e=>{
     $("adminName").textContent=d.name||auth.user;
     role=d.role||"viewer";
     seatingAllowed=!!d.seating;
-    enterApp();
+    enterApp(d.events||null);
   }catch{ $("loginErr").textContent="שם משתמש או סיסמה שגויים"; $("loginErr").style.display="block"; }
   finally{ goBtn.disabled=false; goBtn.textContent="כניסה"; }
 });
@@ -598,15 +598,25 @@ function resetIdle(){
 ["click","keydown","touchstart","scroll","mousemove"].forEach(ev=>
   document.addEventListener(ev,resetIdle,{passive:true}));
 
-async function enterApp(){
+async function enterApp(evList){
   $("loginErr").style.display="none";
   $("loginScreen").style.display="none";
   $("app").classList.add("show");
   applyRole();
   resetIdle();
-  showLoading(true);
-  const d=await api("events");
-  events=d.events||[];
+  if(!evList){
+    // גיבוי: אם רשימת האירועים לא הגיעה עם ההתחברות
+    showLoading(true);
+    try{
+      const d=await api("events");
+      evList=d.events||[];
+    }catch(e){
+      showLoading(false);
+      logout("שגיאה בטעינת הנתונים – נסו להתחבר שוב");
+      return;
+    }
+  }
+  events=evList||[];
   const sel=$("eventSelect");
   sel.innerHTML=events.map(ev=>`<option value="${ev.id}">${ev.name} · ${ev.date||""}</option>`).join("") || `<option value="">אין אירועים</option>`;
   currentEvent=events[0]||null;
